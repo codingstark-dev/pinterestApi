@@ -1,6 +1,7 @@
 var url = "https://www.pinterest.com/pin/";
 const { default: axios } = require("axios");
 const cors = require("cors");
+const streams = require("stream");
 // var fs = require("fs");
 const cheerio = require("cheerio");
 var request = require("request");
@@ -109,22 +110,26 @@ app.get("/expandurl/", async (req, res) => {
   }
 });
 app.get("/download/", async (req, res) => {
-  const url = req.headers.url;
+  const url = req.query.url;
   console.log(url);
   try {
     if (url != undefined && url != null && url != "") {
       axios({
+        url: url,
         method: "GET",
-        url,
-        responseType: "stream",
-      }).then((response) => {
-        // const concatStream = concat((buffer) => {
-        //   const bufferStream = new Stream.PassThrough();
-        //   bufferStream.end(buffer);
-        //   bufferStream.pipe(uploadStream);
-        // });
-        response.data.pipe();
-      }).catch(()=>{});
+        responseType: "stream", // important
+      })
+        .then(function (response) {
+          let contentType = response.headers["content-type"];
+          let contentLength = response.headers["content-length"];
+          var writer = new streams.Writable();
+          console.log(res);
+          response.data.pipe(res);
+          // ....
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     } else {
       return res.status(404).json("Please Enter Valid Url");
     }
