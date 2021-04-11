@@ -109,8 +109,8 @@ app.get("/expandurl/", async (req, res) => {
     return res.status(404).json(error);
   }
 });
-app.get("/download/", async (req, res) => {
-  const url = req.query.url;
+app.get("/download/:slug", async (req, res) => {
+    const url = decodeURIComponent(req.query.url)
   console.log(url);
   try {
     if (url != undefined && url != null && url != "") {
