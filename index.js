@@ -71,11 +71,9 @@ async function scrapeVideo(id) {
           return {
             image,
           };
-        
-        }else{
+        } else {
           return null;
         }
-        
       })
       .catch((err) => {
         console.log(err);
@@ -103,6 +101,30 @@ app.get("/expandurl/", async (req, res) => {
       } else {
         res.status(404).json("Url is Incorrect or insta id doesn`t exist");
       }
+    } else {
+      return res.status(404).json("Please Enter Valid Url");
+    }
+  } catch (error) {
+    return res.status(404).json(error);
+  }
+});
+app.get("/download/", async (req, res) => {
+  const url = req.headers.url;
+  console.log(url);
+  try {
+    if (url != undefined && url != null && url != "") {
+      axios({
+        method: "GET",
+        url,
+        responseType: "stream",
+      }).then((response) => {
+        // const concatStream = concat((buffer) => {
+        //   const bufferStream = new Stream.PassThrough();
+        //   bufferStream.end(buffer);
+        //   bufferStream.pipe(uploadStream);
+        // });
+        response.data.pipe();
+      }).catch(()=>{});
     } else {
       return res.status(404).json("Please Enter Valid Url");
     }
