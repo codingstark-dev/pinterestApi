@@ -27,10 +27,10 @@ app.get("/pin/", cors(), (req, res) => {
             if (data != undefined) {
               return res.status(200).json(data);
             } else {
-              res.status(404).json("Instagram Server Error");
+              res.status(500).json("Incorrect Url!!");
             }
           } else {
-            res.status(404).json("Url is Incorrect or insta id doesn`t exist");
+            res.status(404).json("Url is Incorrect or Pin id doesn`t exist");
           }
         })
         .catch((err) => {
@@ -49,6 +49,9 @@ async function scrapeVideo(id) {
     return axios
       .get(url + id)
       .then((html) => {
+        let listOfVid = [];
+        let listOfimg = [];
+
         const $ = cheerio.load(html.data);
         // var urls = expandUrl("https://pin.it/2jnYfnT");
         const videoString = $("#initial-state");
@@ -62,18 +65,54 @@ async function scrapeVideo(id) {
           .resourceResponses[0].response.data?.videos?.video_list?.V_720P;
         const image = JSON.parse(videoString[0].children[0].data)
           .resourceResponses[0].response.data?.images.orig;
+      
 
-        if (video != null && image != null) {
-          return {
-            image,
-            video,
-          };
-        } else if (image != null) {
-          return {
-            image,
-          };
+        // return listOfVid;
+        if (
+          JSON.parse(videoString[0].children[0].data).resourceResponses[0]
+            .response.data.story_pin_data != undefined
+        ) {
+          JSON.parse(
+            videoString[0].children[0].data
+          ).resourceResponses[0].response.data.story_pin_data.pages.forEach(
+            (element) => {
+              return element.blocks.forEach((element) => {
+                if (element.video != undefined) {
+                  listOfVid.push(element.video.video_list.V_EXP7);
+                }
+              });
+            }
+          );
+          JSON.parse(
+            videoString[0].children[0].data
+          ).resourceResponses[0].response.data.story_pin_data.pages.forEach(
+            (element) => {
+              return element.blocks.forEach((element) => {
+                if (element.image != undefined) {
+                  listOfimg.push(element.image.images?.originals);
+                }
+              });
+            }
+          );
+          if (listOfVid.length != 0) {
+            return { video: listOfVid };
+          } else listOfimg.length != 0;
+          {
+            return { image: listOfimg };
+          }
         } else {
-          return null;
+          if (video != null && image != null) {
+            return {
+              image,
+              video,
+            };
+          } else if (image != null) {
+            return {
+              image,
+            };
+          } else {
+            return null;
+          }
         }
       })
       .catch((err) => {
@@ -110,7 +149,7 @@ app.get("/expandurl/", async (req, res) => {
   }
 });
 app.get("/download/:slug", async (req, res) => {
-    const url = decodeURIComponent(req.query.url)
+  const url = decodeURIComponent(req.query.url);
   console.log(url);
   try {
     if (url != undefined && url != null && url != "") {
@@ -149,4 +188,4 @@ function expandUrl(shortUrl) {
   );
   return Promise.resolve(finalUri);
 }
-app.listen("8080", () => console.log(`Example app listening on port port!`));
+app.listen("8000", () => console.log(`Example app listening on port port!`));
